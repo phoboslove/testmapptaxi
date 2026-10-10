@@ -19,7 +19,7 @@
 - Задача: FastAPI + sqlite3, seed из `data/trips.json`, тесты сводки и API.
 - Что сделал ИИ: `summary.py` (чистые `trip_day` и `build_summary`), `models.py` (валидация, нормализация времени в `+05:00` с отбрасыванием долей секунды), `db.py` (идемпотентный `create_trip`), `seed.py`, `main.py`. Сгенерировал `data/trips.json` скриптом: 35 поездок за 4 дня, поездка через полночь `t18`, поездка в `Z` — `t26`. 48 тестов.
 - Ошибка / что упало:
-  - `git push` из облачной машины вернул 403 («Claude doesn't have GitHub access to phoboslove/testmapptaxi»). Код проверен локально в машине, пуш ждёт, пока пользователь подключит GitHub-доступ.
+  - `git push` из облачной машины вернул 403 («Claude doesn't have GitHub access to phoboslove/testmapptaxi»). Через GitHub API запись тоже не прошла: `403 Resource not accessible by integration`. Пользователь выдал Claude GitHub App доступ к репозиторию, после этого пуш прошёл.
   - pytest выдал предупреждение `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead`. В плане ИИ стоял `httpx`, рассчитанный на более старую версию Starlette.
 - Как исправили и кто нашёл: предупреждение заметил ИИ в выводе pytest. В `requirements.txt` `httpx` заменён на `httpx2==2.13.1`, предупреждение пропало. Проверено в чистом venv: `pip install -r requirements.txt` → 48 passed.
 - Тест на гонку: два потока с `threading.Barrier` одновременно шлют один POST через `TestClient`, ожидается ровно один 201, один 200 и одна новая запись. 30 прогонов подряд — все зелёные. Честное ограничение: тест проверяет результат, но не гарантирует, что оба `INSERT` действительно пересеклись по времени. Корректность при любом порядке обеспечивает `PRIMARY KEY` в SQLite, а не тест.
