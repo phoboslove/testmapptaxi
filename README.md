@@ -6,6 +6,8 @@
 |---|---|---|
 | ![Экран дня](docs/screenshots/day.png) | ![Добавление поездки](docs/screenshots/add_trip.png) | ![Ошибка сети](docs/screenshots/error.png) |
 
+Скриншоты снял ИИ (Claude Code): web-сборка клиента в headless Chromium в облачной машине, backend на чистой БД из `data/trips.json`.
+
 ## Содержание
 
 - [Требования](#требования)
@@ -22,6 +24,12 @@
 - **Python 3.11+.** Тесты прогонялись на 3.11.17 и 3.13.16.
 - **Flutter 3.47.x** (stable, Dart 3.13). Клиент собран и проверен на Flutter 3.47.7. `pubspec.yaml` требует Dart `^3.13.5`; на более старом Flutter сначала выполните `flutter upgrade`.
 - **Chrome** для web-клиента.
+
+Проверено «с нуля» по этому README: Windows 11, Python 3.11.9, Flutter 3.47.7 (stable), Chrome.
+
+**Windows:**
+- Клонируйте проект и ставьте Flutter в путь **без кириллицы и пробелов**, например `C:\dev\testmapptaxi` и `C:\src\flutter`. Flutter и Dart известны проблемами с не-ASCII путями. Если папка пользователя на кириллице (например `C:\Users\Иван`), задайте и `PUB_CACHE`, например `C:\src\pub-cache`.
+- Для запуска в Chrome Android Studio и Visual Studio не нужны. Предупреждения `flutter doctor` о них можно игнорировать.
 
 ## Backend: запуск и тесты
 
@@ -242,6 +250,7 @@ HTTP 422
 - **Окружение.** Сначала `git push` падал с 403, потому что у GitHub App не было доступа к репозиторию; доступ выдал пользователь. Политика сети облака блокировала CDN CanvasKit, поэтому для проверки web-версия собиралась с `--no-web-resources-cdn`.
 
 Как проверяли:
+- проверка «с нуля» по README на машине человека (Windows 11, Python 3.11.9, Flutter 3.47.7, Chrome);
 - 49 тестов backend и 15 тестов клиента;
 - curl по каждому правилу API;
 - сценарии UI в headless Chromium, в том числе повтор после потерянного ответа: первый POST сохранил поездку (201), но ответ до клиента не дошёл; повтор с тем же uuid получил 200, в базе одна поездка.
