@@ -150,10 +150,18 @@ def test_missing_field_is_422(client):
     assert client.post("/api/trips", json=body).status_code == 422
 
 
-def test_end_before_start_message_is_readable(client):
-    response = client.post("/api/trips", json={**NEW_TRIP, "end": "2026-10-05T08:00:00+05:00"})
+@pytest.mark.parametrize(
+    ("changes", "field", "message"),
+    [
+        ({"end": "2026-10-05T08:00:00+05:00"}, "end", "end must be later than start"),
+        ({"commission": 2401}, "commission", "commission must not exceed amount"),
+    ],
+)
+def test_cross_field_error_points_at_field(client, changes, field, message):
+    error = client.post("/api/trips", json={**NEW_TRIP, **changes}).json()["detail"][0]
 
-    assert "end must be later than start" in response.json()["detail"][0]["msg"]
+    assert error["loc"] == ["body", field]
+    assert error["msg"] == message
 
 
 # --- duplicates ---------------------------------------------------------------

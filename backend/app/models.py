@@ -9,9 +9,10 @@ from pydantic import (
     ConfigDict,
     Field,
     StringConstraints,
+    ValidationInfo,
     field_validator,
-    model_validator,
 )
+from pydantic_core import PydanticCustomError
 
 from .summary import to_almaty, trip_day
 
@@ -46,13 +47,23 @@ class TripIn(BaseModel):
     def normalize_time(cls, value: datetime) -> datetime:
         return to_almaty(value)
 
-    @model_validator(mode="after")
-    def check_consistency(self) -> "TripIn":
-        if self.end <= self.start:
-            raise ValueError("end must be later than start")
-        if self.commission > self.amount:
-            raise ValueError("commission must not exceed amount")
-        return self
+    # Cross-field checks are attached to the later field, so a 422 points
+    # at "end" / "commission" and the client can show it under that input.
+    @field_validator("end")
+    @classmethod
+    def end_after_start(cls, end: datetime, info: ValidationInfo) -> datetime:
+        start = info.data.get("start")
+        if start is not None and end <= start:
+            raise PydanticCustomError("end_not_after_start", "end must be later than start")
+        return end
+
+    @field_validator("commission")
+    @classmethod
+    def commission_within_amount(cls, commission: int, info: ValidationInfo) -> int:
+        amount = info.data.get("amount")
+        if amount is not None and commission > amount:
+            raise PydanticCustomError("commission_over_amount", "commission must not exceed amount")
+        return commission
 
     @property
     def day(self) -> date:
